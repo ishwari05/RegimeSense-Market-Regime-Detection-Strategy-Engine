@@ -27,17 +27,19 @@ The system uses a **Gaussian Hidden Markov Model (HMM)** to cluster historical p
 ### 2. Hybrid Forecasting (XGBoost)
 By feeding HMM state probabilities into an **XGBoost Classifier**, the platform predicts the transition probability for the next trading day, providing a quantitative "Market Weather Forecast."
 
-### 3. Regime-Based Strategy
-A custom backtesting engine evaluates if a regime-following strategy (e.g., *Long in Bull, Cash in Bear*) outperforms a standard Buy & Hold approach across different historical windows.
+### 3. AI Insight Layer (Explainability)
+> [!IMPORTANT]
+> **No more black boxes.** The platform includes an AI logic engine that translates complex model weights and transition probabilities into human-readable narratives, explaining *why* the market is shifting and what the primary risk drivers are.
 
 ---
 
 ## ⚙️ Key Features
 - ✅ **Latent State Detection**: Automatic classification of Bull, Bear, and Sideways regimes.
-- 📈 **Real-Time Analysis**: Fetch and analyze any global ticker (Stocks, Crypto, Indices) via Yahoo Finance.
+- 🧪 **Expanding Walk-Forward Validation**: Time-series correct evaluation using rolling windows to ensure model reliability.
+- 🧠 **AI-Driven Market Insights**: Human-readable explanations of model reasoning and persistence drivers.
+- 📈 **Regime Stability Analysis**: Consistency checks across historical epochs (Past vs. Current) to prove structural robustness.
 - 🔮 **Next-Regime Forecast**: Hybrid ML providing confidence scores for the next market shift.
 - 🛡️ **Risk-Adjusted Backtesting**: Comparison of regime-based switching vs. baseline benchmarks.
-- 📐 **Interactive Visuals**: Premium D3.js and Recharts dashboard for deep-dive insights.
 
 ---
 
@@ -47,22 +49,25 @@ A custom backtesting engine evaluates if a regime-following strategy (e.g., *Lon
 | :--- | :--- |
 | **Backend** | Python, FastAPI, Uvicorn |
 | **ML/Quant** | hmmlearn, XGBoost, Pandas, Scikit-Learn |
+| **Validation** | Walk-forward cross-validation, Stability Analysis |
 | **Frontend** | Next.js 14 (App Router), TypeScript, Tailwind CSS |
-| **Visuals** | Recharts, D3.js, Framer Motion |
-| **Data** | yfinance (Yahoo Finance API) |
+| **Visuals** | Recharts, Framer Motion, D3.js |
 
 ---
 
 ## 🎨 Visualizations & UX
 
+### 🛡️ Model Credibility & Validation Section
+The platform now includes a **"Research Deep-Dive"** module for scientific transparency:
+- **Performance Stability Chart**: Line chart showing accuracy across sequential walk-forward folds.
+- **Cross-Epoch Stability Table**: Comparing regime mean returns and volatility across different time decades.
+- **Feature Contribution Chart**: Horizontal bar chart mapping exactly which indicators are driving the current ML output.
+
 ### 📽️ Killer Visuals
 - **Regime Overlay Chart**: Price history shaded by detected regime (Green = Bull, Red = Bear).
 - **Probability Stream**: Stacked area chart showing how certainty in each state fluctuates.
-- **Transition Matrix**: Heatmap quantifying the mathematical odds of switching states.
-- **Equity Curves**: Strategy performance vs. Buy & Hold benchmark.
-
-### 🍱 Premium UI
-The platform features a sleek, **Glassmorphism Dark Theme** designed for institutional-grade visual clarity and a premium "Quant Cockpit" feel.
+- **Transition Matrix**: Interactive heatmap for probability-based regime switches.
+- **AI Analyst Panel**: Glassmorphism panel narrating the "why" behind the numbers.
 
 ---
 
@@ -71,18 +76,14 @@ The platform features a sleek, **Glassmorphism Dark Theme** designed for institu
 RegimeSense/
 ├── backend/
 │   ├── app/
-│   │   ├── api/          # FastAPI Routes
-│   │   ├── core/         # Backtesting Engine
-│   │   ├── models/        # HMM & XGBoost Logic
-│   │   └── services/      # Data Fetching & Processing
-│   └── requirements.txt   # Python Dependencies
+│   │   ├── core/         # Backtesting & Validation Engines
+│   │   ├── models/       # HMM, XGBoost & Explanation Engines
+│   │   └── services/     # Data Fetching & Feature Engineering
+│   └── requirements.txt
 ├── frontend/
 │   ├── src/
-│   │   ├── app/           # Next.js Pages
-│   │   ├── components/    # Reusable UI & Advanced Charts
-│   │   └── lib/           # API Client & Utils
-│   └── package.json       # Node Dependencies
-└── README.md
+│   │   ├── components/   # Charts, Insights & Validation UI
+│   │   └── ...
 ```
 
 ---
@@ -112,21 +113,17 @@ Navigate to `http://localhost:3000` to launch the platform.
 1. **Ingest**: Fetch raw OHLCV data via `yfinance`.
 2. **Feature Engineering**: Compute Log-Returns, Rolling Volatility, RSI, and MACD.
 3. **Clustering**: Train Gaussian HMM to identify 3 hidden market states.
-4. **Ensemble Training**: Feed HMM probabilities + indicators into XGBoost for transition prediction.
-5. **Backtest**: Apply "Long-Only Bull" rules and calculate CAGR, Sharpe, and Max DD.
+4. **Validation**: Run **Walk-Forward Cross-Validation** to ensure the HMM+ML pipeline generalizes over time.
+5. **Inference**: Generate predictions and AI-driven insights describing momentum and persistence.
+6. **Backtest**: Evaluate regime-switching Alpha against Buy & Hold benchmarks.
 
 ---
 
 ## 📌 Key Learnings
-- **Time-Series Latency**: Working with non-stationary financial data requires robust normalization.
-- **Unsupervised Insights**: HMMs are powerful at identifying structural breaks that simple moving averages miss.
-- **Production Guardrails**: Implementing data-cleaning (Inf/NaN trapping) is critical for stable ML in production.
-
-## 🔮 Future Improvements
-- [ ] **Multi-Asset Portfolio**: Combined regime signal for diverse asset buckets.
-- [ ] **Transformer Models**: Exploring Time-Series Transformers (TST) for better sequential forecasting.
-- [ ] **Live WebSockets**: Real-time ticker updates and regime shift alerts.
+- **Scientific Rigor**: Implementing walk-forward validation is the only way to avoid the "look-ahead bias" trap in quant finance.
+- **Human-Centric Design**: Complex probabilistic models are only useful if their outputs can be explained clearly to a human decision-maker.
+- **Regime Stability**: Proving that a Bull market has consistent characteristics over time is the key to building trust in AI-driven strategies.
 
 ---
 
-*Built by a Quant Engineer with a focus on blending complex ML with premium Product Design.*
+*Built for institutional-grade quantitative research and premium product experience.*
