@@ -8,12 +8,15 @@ import RegimeOverlay from '@/components/charts/RegimeOverlay';
 import ProbabilityStream from '@/components/charts/ProbabilityStream';
 import TransitionMatrix from '@/components/charts/TransitionMatrix';
 import EquityCurve from '@/components/charts/EquityCurve';
-import { analyzeMarket } from '@/lib/api';
+import InsightPanel from '@/components/dashboard/InsightPanel';
+import ValidationSection from '@/components/dashboard/ValidationSection';
+import { analyzeMarket, validateModel } from '@/lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, AlertTriangle } from 'lucide-react';
 
 export default function DashboardPage() {
   const [data, setData] = useState<any>(null);
+  const [validationData, setValidationData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,8 +24,12 @@ export default function DashboardPage() {
     setLoading(true);
     setError(null);
     try {
-      const result = await analyzeMarket(ticker);
+      const [result, validation] = await Promise.all([
+        analyzeMarket(ticker),
+        validateModel(ticker)
+      ]);
       setData(result);
+      setValidationData(validation);
     } catch (err: any) {
       setError(err.response?.data?.detail || "Failed to analyze market. Please try another ticker.");
     } finally {
@@ -99,31 +106,6 @@ export default function DashboardPage() {
                   <RegimeOverlay data={data.chart_data} />
                   <ProbabilityStream data={data.chart_data} />
                   <EquityCurve data={data.backtest.equity_curve} />
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-                    <TransitionMatrix 
-                      matrix={data.transition_matrix} 
-                      stateMap={data.state_map} 
-                    />
-                    <div className="glass-card p-6 h-full">
-                      <h3 className="text-lg font-semibold text-white mb-4">Model Insights</h3>
-                      <div className="space-y-4">
-                        <div className="flex gap-3">
-                          <div className="w-1 h-auto bg-blue-500 rounded-full" />
-                          <p className="text-xs text-slate-400 leading-relaxed">
-                            Currectly in <span className="text-white font-bold">{data.chart_data[data.chart_data.length-1].regime}</span> regime.
-                            Expecting volatility to {data.next_prediction.regime === 'Bear' ? 'increase' : 'stabilize'}.
-                          </p>
-                        </div>
-                        <div className="flex gap-3">
-                          <div className="w-1 h-auto bg-emerald-500 rounded-full" />
-                          <p className="text-xs text-slate-400 leading-relaxed">
-                            Transition probability to {data.next_prediction.regime} is {(data.next_prediction.confidence * 100).toFixed(0)}%.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                 </div>
                 
                 <div className="space-y-8">
@@ -131,8 +113,15 @@ export default function DashboardPage() {
                     prediction={data.next_prediction} 
                     accuracy={data.accuracy} 
                   />
+                  <TransitionMatrix 
+                    matrix={data.transition_matrix} 
+                    stateMap={data.state_map} 
+                  />
+                  <InsightPanel insights={data.insights} />
                 </div>
               </div>
+
+              {validationData && <ValidationSection data={validationData} />}
             </motion.div>
           )}
         </AnimatePresence>

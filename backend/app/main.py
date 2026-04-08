@@ -8,7 +8,13 @@ import numpy as np
 from app.services.data_engine import fetch_market_data, compute_features, normalize_features
 from app.models.hmm_engine import MarketsHMMEngine
 from app.models.hybrid_engine import HybridRegimeModel
+from app.models.explanation_engine import generate_insights
 from app.core.backtest import run_backtest
+from app.core.validation_module import (
+    run_walk_forward_validation, 
+    analyze_regime_stability, 
+    get_detailed_feature_importance
+)
 
 app = FastAPI(title="RegimeSense API")
 
@@ -54,7 +60,19 @@ async def analyze_market(request: TrainRequest):
         # 4. Backtest
         backtest_results = run_backtest(df, regimes)
         
-        # 5. Prepare chart data
+        # 5. Generate Model Insights
+        current_regime = regimes[-1]
+        feature_importance = hybrid_model.get_feature_importance()
+        insights_data = generate_insights(
+            df=df,
+            hmm_probs=probs,
+            trans_matrix=hmm_engine.get_transition_matrix(),
+            hybrid_prediction=next_pred,
+            current_regime=current_regime,
+            feature_importance=feature_importance
+        )
+        
+        # 6. Prepare chart data
         chart_data = []
         for i in range(len(df)):
             chart_data.append({
@@ -74,9 +92,48 @@ async def analyze_market(request: TrainRequest):
             "state_stats": hmm_engine.get_state_stats(),
             "backtest": backtest_results,
             "chart_data": chart_data,
-            "state_map": hmm_engine.state_map
+            "state_map": hmm_engine.state_map,
+            "insights": insights_data
         }
 
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/validate")
+async def validation_suite(request: TrainRequest):
+    try:
+        # 1. Fetch data
+        raw_df = fetch_market_data(request.ticker, request.period)
+        df = compute_features(raw_df)
+        
+        # 2. Run Walk-Forward
+        walk_forward = run_walk_forward_validation(df)
+        
+        # 3. Analyze Stability
+        stability = analyze_regime_stability(df)
+        
+        # 4. Get Feature Importance (trained on full set)
+        hmm_features = ['log_return', 'volatility']
+        df_hmm, _ = normalize_features(df, hmm_features)
+        hmm_engine = MarketsHMMEngine(n_states=3)
+        states = hmm_engine.train(df_hmm[hmm_features])
+        regimes = hmm_engine.label_regimes(df, states)
+        probs = hmm_engine.get_probabilities(df_hmm[hmm_features])
+        
+        hybrid_model = HybridRegimeModel()
+        X_hybrid, y_hybrid = hybrid_model.prepare_data(df, probs, regimes)
+        hybrid_model.train(X_hybrid, y_hybrid)
+        
+        feature_importance = get_detailed_feature_importance(hybrid_model)
+        
+        return {
+            "walk_forward": walk_forward,
+            "stability": stability,
+            "feature_importance": feature_importance
+        }
+        
     except Exception as e:
         import traceback
         print(traceback.format_exc())

@@ -9,4 +9,9 @@ export const analyzeMarket = async (ticker: string, period: string = '5y') => {
   return response.data;
 };
 
+export const validateModel = async (ticker: string, period: string = '5y') => {
+  const response = await api.post('/validate', { ticker, period });
+  return response.data;
+};
+
 export default api;

@@ -18,16 +18,19 @@ const TransitionMatrix: React.FC<TransitionMatrixProps> = ({ matrix, stateMap })
   };
 
   return (
-    <div className="glass-card p-6 h-full">
-      <h3 className="text-lg font-semibold text-white mb-6">Transition Matrix</h3>
-      <div className="grid grid-cols-[auto_1fr] gap-4">
-        {/* Empty corner */}
-        <div></div>
+    <div className="glass-card p-5">
+      <div className="flex justify-between items-center mb-5">
+          <h3 className="text-sm font-bold text-white uppercase tracking-wider">Stability Matrix</h3>
+          <div className="px-2 py-0.5 bg-white/5 rounded text-[8px] text-slate-500 font-bold uppercase">Prob. Density</div>
+      </div>
+
+      <div className="grid grid-cols-[38px_1fr] gap-y-2">
         {/* Column Labels */}
-        <div className="grid grid-cols-3 gap-2">
+        <div />
+        <div className="grid grid-cols-3 gap-1.5 mb-1">
           {states.map((state) => (
-            <div key={state} className="text-center text-xs text-slate-400 font-medium">
-              To {state}
+            <div key={state} className="text-[10px] text-center text-slate-500 font-bold uppercase truncate">
+                {state.slice(0, 4)}
             </div>
           ))}
         </div>
@@ -36,22 +39,22 @@ const TransitionMatrix: React.FC<TransitionMatrixProps> = ({ matrix, stateMap })
         {states.map((fromState, i) => (
           <React.Fragment key={fromState}>
             {/* Row Label */}
-            <div className="flex items-center text-xs text-slate-400 font-medium h-20 w-20">
-              From {fromState}
+            <div className="flex items-center text-[10px] text-slate-500 font-bold uppercase pr-2 border-r border-white/5">
+                {fromState.slice(0, 4)}
             </div>
             {/* Row Cells */}
-            <div className="grid grid-cols-3 gap-2 h-20">
+            <div className="grid grid-cols-3 gap-1.5 h-14">
               {matrix[i].map((value, j) => (
                 <motion.div
                   key={j}
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: (i * 3 + j) * 0.05 }}
-                  className="relative flex items-center justify-center rounded-lg border border-white/5 overflow-hidden"
+                  className="relative flex items-center justify-center rounded-lg border border-white/5 shadow-inner"
                   style={{ backgroundColor: getCellColor(value) }}
                 >
-                  <span className="relative z-10 text-sm font-bold text-white">
-                    {(value * 100).toFixed(1)}%
+                  <span className="relative z-10 text-xs font-black text-white">
+                    {(value * 100).toFixed(0)}%
                   </span>
                 </motion.div>
               ))}
@@ -59,9 +62,12 @@ const TransitionMatrix: React.FC<TransitionMatrixProps> = ({ matrix, stateMap })
           </React.Fragment>
         ))}
       </div>
-      <p className="mt-6 text-[10px] text-slate-500 italic">
-        Probability of transitioning from current regime (rows) to next regime (columns).
-      </p>
+      
+      <div className="mt-5 pt-4 border-t border-white/5">
+        <p className="text-[9px] text-slate-500 leading-tight italic">
+            Relative probability of regime transitions for the next session. High diagonal values indicate regime persistence.
+        </p>
+      </div>
     </div>
   );
 };

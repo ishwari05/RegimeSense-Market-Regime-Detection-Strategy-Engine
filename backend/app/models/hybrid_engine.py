@@ -67,3 +67,14 @@ class HybridRegimeModel:
             "regime": self.labels_to_regime[pred_label],
             "confidence": float(confidence)
         }
+
+    def get_feature_importance(self):
+        """
+        Return the feature importance scores from the trained XGBoost model.
+        """
+        if not hasattr(self.model, 'feature_importances_'):
+            return None
+        
+        feature_names = ['rsi', 'macd', 'volatility', 'volume_change', 'hmm_prob_0', 'hmm_prob_1', 'hmm_prob_2']
+        importances = self.model.feature_importances_
+        return {name: float(imp) for name, imp in zip(feature_names, importances)}
